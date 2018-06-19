@@ -13,8 +13,10 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.BarLineChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.lai.mpadnroidchart.marker.DetailsMarkerView;
 import com.lai.mpadnroidchart.marker.PositionMarker;
 import com.lai.mpadnroidchart.marker.RoundMarker;
@@ -90,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         findViewById(R.id.btn_slide).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -152,15 +155,33 @@ public class MainActivity extends AppCompatActivity {
         legend.setTextColor(Color.WHITE);
         //legend.setYOffset(-2);
 
+        //点击图表坐标监听
+        mLineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                //查看覆盖物是否被回收
+                if (mLineChart.isMarkerAllNull()) {
+                    //重新绑定覆盖物
+                    createMakerView();
+                    //并且手动高亮覆盖物
+                    mLineChart.highlightValue(h);
+                }
+            }
+
+            @Override
+            public void onNothingSelected() {
+
+            }
+        });
+
         //隐藏x轴描述
         Description description = new Description();
         description.setEnabled(false);
         mLineChart.setDescription(description);
-        DetailsMarkerView detailsMarkerView = new DetailsMarkerView(this);
-        detailsMarkerView.setChartView(mLineChart);
-        mLineChart.setDetailsMarkerView(detailsMarkerView);
-        mLineChart.setPositionMarkerl(new PositionMarker(this));
-        mLineChart.setRoundMarker(new RoundMarker(this));
+
+        //创建覆盖物
+        createMakerView();
+
         //3.chart设置数据
         LineData lineData = new LineData(dataSet);
         //是否绘制线条上的文字
@@ -168,10 +189,17 @@ public class MainActivity extends AppCompatActivity {
         mLineChart.setData(lineData);
         mLineChart.invalidate(); // refresh
 
-        //默认显示第一个覆盖物
-        mLineChart.highlightValue(0,0);
-
     }
 
+    /**
+     * 创建覆盖物
+     */
+    public void createMakerView() {
+        DetailsMarkerView detailsMarkerView = new DetailsMarkerView(this);
+        detailsMarkerView.setChartView(mLineChart);
+        mLineChart.setDetailsMarkerView(detailsMarkerView);
+        mLineChart.setPositionMarker(new PositionMarker(this));
+        mLineChart.setRoundMarker(new RoundMarker(this));
+    }
 
 }

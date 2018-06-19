@@ -13,6 +13,8 @@ import com.lai.mpadnroidchart.marker.DetailsMarkerView;
 import com.lai.mpadnroidchart.marker.PositionMarker;
 import com.lai.mpadnroidchart.marker.RoundMarker;
 
+import java.lang.ref.WeakReference;
+
 /**
  * @author Lai
  * @time 2018/5/26 14:27
@@ -21,31 +23,30 @@ import com.lai.mpadnroidchart.marker.RoundMarker;
 
 public class MyLineChart extends LineChart {
 
-    private DetailsMarkerView mDetailsMarkerView;
+    //弱引用覆盖物对象,防止内存泄漏
+    private WeakReference<DetailsMarkerView> mDetailsReference;
+    private WeakReference<RoundMarker> mRoundMarkerReference;
+    private WeakReference<PositionMarker> mPositionMarkerReference;
 
-
-
-    private RoundMarker mRoundMarker;
-    private PositionMarker mPositionMarkerl;
-
-    public DetailsMarkerView getDetailsMarkerView() {
-        return mDetailsMarkerView;
+    /**
+     * 所有覆盖物是否为空
+     *
+     * @return TRUE FALSE
+     */
+    public boolean isMarkerAllNull() {
+        return mDetailsReference.get() == null && mRoundMarkerReference.get() == null && mPositionMarkerReference.get() == null;
     }
 
     public void setDetailsMarkerView(DetailsMarkerView detailsMarkerView) {
-        mDetailsMarkerView = detailsMarkerView;
+        mDetailsReference = new WeakReference<>(detailsMarkerView);
     }
 
     public void setRoundMarker(RoundMarker roundMarker) {
-        mRoundMarker = roundMarker;
+        mRoundMarkerReference = new WeakReference<>(roundMarker);
     }
 
-    public PositionMarker getPositionMarkerl() {
-        return mPositionMarkerl;
-    }
-
-    public void setPositionMarkerl(PositionMarker positionMarkerl) {
-        mPositionMarkerl = positionMarkerl;
+    public void setPositionMarker(PositionMarker positionMarker) {
+        mPositionMarkerReference = new WeakReference<>(positionMarker);
     }
 
     public MyLineChart(Context context) {
@@ -67,7 +68,11 @@ public class MyLineChart extends LineChart {
     protected void drawMarkers(Canvas canvas) {
 
         // if there is no marker view or drawing marker is disabled
-        if (mDetailsMarkerView == null || mRoundMarker == null || mPositionMarkerl == null || !isDrawMarkersEnabled() || !valuesToHighlight())
+        DetailsMarkerView mDetailsMarkerView = mDetailsReference.get();
+        RoundMarker mRoundMarker = mRoundMarkerReference.get();
+        PositionMarker mPositionMarker = mPositionMarkerReference.get();
+
+        if (mDetailsMarkerView == null || mRoundMarker == null || mPositionMarker == null || !isDrawMarkersEnabled() || !valuesToHighlight())
             return;
 
         for (int i = 0; i < mIndicesToHighlight.length; i++) {
@@ -97,11 +102,11 @@ public class MyLineChart extends LineChart {
             // callbacks to update the content
             mDetailsMarkerView.refreshContent(e, highlight);
 
-            mDetailsMarkerView.draw(canvas, pos[0], pos[1] - mPositionMarkerl.getHeight());
+            mDetailsMarkerView.draw(canvas, pos[0], pos[1] - mPositionMarker.getHeight());
 
 
-            mPositionMarkerl.refreshContent(e, highlight);
-            mPositionMarkerl.draw(canvas, pos[0] - mPositionMarkerl.getWidth() / 2, pos[1] - mPositionMarkerl.getHeight());
+            mPositionMarker.refreshContent(e, highlight);
+            mPositionMarker.draw(canvas, pos[0] - mPositionMarker.getWidth() / 2, pos[1] - mPositionMarker.getHeight());
 
             mRoundMarker.refreshContent(e, highlight);
             mRoundMarker.draw(canvas, pos[0] - mRoundMarker.getWidth() / 2, pos[1] + circleRadius - mRoundMarker.getHeight());
